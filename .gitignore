@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+public/avatars/
+public/broll/
+public/audio/
+output/*.mp4
