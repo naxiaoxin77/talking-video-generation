@@ -5,7 +5,6 @@ import { fade } from "@remotion/transitions/fade";
 import type { CompositionProps } from "../pipeline/types.js";
 import { AvatarSegment } from "./components/AvatarSegment.js";
 import { BrollSegment } from "./components/BrollSegment.js";
-import { Subtitles } from "./components/Subtitles.js";
 
 export const TalkingVideo: React.FC<CompositionProps> = ({ segments }) => {
   const { fps } = useVideoConfig();
@@ -22,11 +21,16 @@ export const TalkingVideo: React.FC<CompositionProps> = ({ segments }) => {
             <React.Fragment key={segment.id}>
               <TransitionSeries.Sequence durationInFrames={durationInFrames}>
                 {segment.type === "avatar" || !segment.brollImagePath ? (
-                  <AvatarSegment videoSrc={segment.avatarVideoPath!} />
+                  <AvatarSegment
+                    videoSrc={segment.avatarVideoPath!}
+                    subtitleText={segment.text}
+                  />
                 ) : (
                   <BrollSegment
                     imageSrc={segment.brollImagePath}
                     audioSrc={segment.audioPath!}
+                    durationInFrames={durationInFrames}
+                    subtitleText={segment.text}
                   />
                 )}
               </TransitionSeries.Sequence>
@@ -40,8 +44,6 @@ export const TalkingVideo: React.FC<CompositionProps> = ({ segments }) => {
           );
         })}
       </TransitionSeries>
-
-      <Subtitles segments={segments} />
     </AbsoluteFill>
   );
 };

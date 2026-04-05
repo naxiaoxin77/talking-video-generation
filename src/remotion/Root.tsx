@@ -1,5 +1,5 @@
 import React from "react";
-import { Composition } from "remotion";
+import { Composition, registerRoot } from "remotion";
 import type { CalculateMetadataFunction } from "remotion";
 import { TalkingVideo } from "./TalkingVideo.js";
 import type { CompositionProps } from "../pipeline/types.js";
@@ -50,3 +50,5 @@ export const RemotionRoot: React.FC = () => {
     />
   );
 };
+
+registerRoot(RemotionRoot);

@@ -44,6 +44,7 @@ async function main() {
   console.log(`Script: "${script.title}" — ${script.segments.length} segments`);
 
   // Save script for debugging
+  fs.mkdirSync(config.outputDir, { recursive: true });
   const scriptPath = path.join(config.outputDir, "script.json");
   fs.writeFileSync(scriptPath, JSON.stringify(script, null, 2), "utf-8");
   console.log(`Script saved to: ${scriptPath}`);
