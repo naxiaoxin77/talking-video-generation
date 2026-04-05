@@ -56,6 +56,8 @@ async function main() {
     voiceId: config.avatarVoiceId,
     boardId,
     publicDir: config.publicDir,
+    ttsSpeed: config.ttsSpeed,
+    ttsEmotion: config.ttsEmotion,
   });
 
   // Step 2b: Generate B-roll images
@@ -82,7 +84,7 @@ async function main() {
 
   // Step 5: Cleanup temporary resources
   console.log("\n=== Step 5: Cleaning up temporary files ===");
-  const dirsToClean = ["avatars", "broll", "audio"].map(d => path.join(config.publicDir, d));
+  const dirsToClean = ["avatars", "broll", "audio", "tts"].map(d => path.join(config.publicDir, d));
   for (const dir of dirsToClean) {
     if (fs.existsSync(dir)) {
       fs.rmSync(dir, { recursive: true, force: true });

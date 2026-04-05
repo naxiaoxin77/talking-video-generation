@@ -10,36 +10,66 @@ export async function generateAvatarVideos(
     voiceId: string;
     boardId: string;
     publicDir: string;
+    ttsSpeed?: number;
+    ttsEmotion?: string;
   }
 ): Promise<EnrichedSegment[]> {
   const avatarsDir = path.join(config.publicDir, "avatars");
+  const ttsDir = path.join(config.publicDir, "tts");
 
-  console.log(`Submitting ${segments.length} avatar4 tasks...`);
-
-  // Phase 1: Batch submit all tasks
-  const taskMap: { segment: Segment; taskId: string }[] = [];
+  // ===== Phase 1: Batch submit TTS tasks =====
+  console.log(`Submitting ${segments.length} TTS tasks (speed=${config.ttsSpeed}, emotion=${config.ttsEmotion})...`);
+  const ttsTaskMap: { segment: Segment; taskId: string }[] = [];
   for (const segment of segments) {
-    console.log(`  [${segment.id}] Submitting: "${segment.text.slice(0, 30)}..."`);
-    const taskId = await topview.submitAvatar4(
+    console.log(`  [${segment.id}] TTS: "${segment.text.slice(0, 30)}..."`);
+    const taskId = await topview.submitText2Voice(
       segment.text,
-      config.avatarPhotoPath,
       config.voiceId,
-      config.boardId
+      {
+        speed: config.ttsSpeed,
+        emotion: config.ttsEmotion || undefined,
+        boardId: config.boardId,
+      }
     );
-    taskMap.push({ segment, taskId });
-    console.log(`  [${segment.id}] TaskId: ${taskId}`);
+    ttsTaskMap.push({ segment, taskId });
+    console.log(`  [${segment.id}] TTS TaskId: ${taskId}`);
   }
 
-  // Phase 2: Poll all tasks in parallel
-  console.log(`Polling ${taskMap.length} tasks in parallel...`);
+  // ===== Phase 2: Poll TTS tasks in parallel, download audio =====
+  console.log(`Polling ${ttsTaskMap.length} TTS tasks...`);
+  const ttsResults = await Promise.all(
+    ttsTaskMap.map(async ({ segment, taskId }) => {
+      const { audioUrl } = await topview.queryText2Voice(taskId, 300);
+      const audioPath = path.join(ttsDir, `${segment.id}.mp3`);
+      await downloadFile(audioUrl, audioPath);
+      console.log(`  [${segment.id}] TTS done`);
+      return { segment, audioPath };
+    })
+  );
+
+  // ===== Phase 3: Batch submit avatar4 with audio =====
+  console.log(`Submitting ${ttsResults.length} avatar4 tasks (audio-driven)...`);
+  const avatarTaskMap: { segment: Segment; taskId: string }[] = [];
+  for (const { segment, audioPath } of ttsResults) {
+    const taskId = await topview.submitAvatar4WithAudio(
+      audioPath,
+      config.avatarPhotoPath,
+      config.boardId
+    );
+    avatarTaskMap.push({ segment, taskId });
+    console.log(`  [${segment.id}] Avatar TaskId: ${taskId}`);
+  }
+
+  // ===== Phase 4: Poll avatar4 tasks in parallel, download videos =====
+  console.log(`Polling ${avatarTaskMap.length} avatar4 tasks...`);
   const results = await Promise.all(
-    taskMap.map(async ({ segment, taskId }) => {
+    avatarTaskMap.map(async ({ segment, taskId }) => {
       try {
         const { videoUrl } = await topview.queryAvatar4(taskId, 600);
         const relativePath = `avatars/${segment.id}.mp4`;
         const absolutePath = path.join(avatarsDir, `${segment.id}.mp4`);
         await downloadFile(videoUrl, absolutePath);
-        console.log(`  [${segment.id}] Done`);
+        console.log(`  [${segment.id}] Avatar done`);
         return { ...segment, avatarVideoUrl: videoUrl, avatarVideoPath: relativePath } as EnrichedSegment;
       } catch (err) {
         console.error(`  [${segment.id}] Failed, retrying with longer timeout...`);

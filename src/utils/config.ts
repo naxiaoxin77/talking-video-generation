@@ -16,6 +16,8 @@ export function loadConfig(): PipelineConfig {
     topviewScriptsDir: required("TOPVIEW_SCRIPTS_DIR"),
     avatarPhotoPath: required("AVATAR_PHOTO_PATH"),
     avatarVoiceId: required("AVATAR_VOICE_ID"),
+    ttsSpeed: parseFloat(process.env.TTS_SPEED || "1.0"),
+    ttsEmotion: process.env.TTS_EMOTION || "",
     outputDir: path.resolve("output"),
     publicDir: path.resolve("public"),
   };

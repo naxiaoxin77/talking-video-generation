@@ -35,6 +35,8 @@ export interface PipelineConfig {
   topviewScriptsDir: string;
   avatarPhotoPath: string;
   avatarVoiceId: string;
+  ttsSpeed: number;
+  ttsEmotion: string;
   outputDir: string;
   publicDir: string;
 }

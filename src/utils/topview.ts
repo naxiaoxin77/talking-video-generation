@@ -109,6 +109,54 @@ export class TopviewClient {
     return { imageUrl: typeof imageUrl === "string" ? imageUrl : imageUrl.url };
   }
 
+  async submitText2Voice(
+    text: string,
+    voiceId: string,
+    options?: { speed?: number; emotion?: string; boardId?: string }
+  ): Promise<string> {
+    const args = [
+      "submit",
+      "--text", text,
+      "--voice-id", voiceId,
+      "--json",
+    ];
+    if (options?.speed) args.push("--speed", String(options.speed));
+    if (options?.emotion) args.push("--emotion", options.emotion);
+    if (options?.boardId) args.push("--board-id", options.boardId);
+    const output = await this.exec("text2voice.py", args);
+    const result = JSON.parse(output);
+    return result.taskId || output.trim();
+  }
+
+  async queryText2Voice(taskId: string, timeout = 300): Promise<{ audioUrl: string }> {
+    const output = await this.exec("text2voice.py", [
+      "query",
+      "--task-id", taskId,
+      "--timeout", String(timeout),
+      "--json",
+    ]);
+    const result = JSON.parse(output);
+    const audioUrl = result.audioUrl || result.audio_url || result.resultUrl;
+    if (!audioUrl) throw new Error(`No audio URL in text2voice result: ${output}`);
+    return { audioUrl };
+  }
+
+  async submitAvatar4WithAudio(
+    audioPath: string,
+    imagePath: string,
+    boardId: string
+  ): Promise<string> {
+    const output = await this.exec("avatar4.py", [
+      "submit",
+      "--image", imagePath,
+      "--audio", audioPath,
+      "--board-id", boardId,
+      "--json",
+    ]);
+    const result = JSON.parse(output);
+    return result.taskId || output.trim();
+  }
+
   async listVoices(language?: string): Promise<string> {
     const args = ["list"];
     if (language) args.push("--language", language);
