@@ -1,0 +1,22 @@
+import { config } from "dotenv";
+import path from "path";
+import type { PipelineConfig } from "../pipeline/types.js";
+
+config();
+
+export function loadConfig(): PipelineConfig {
+  const required = (key: string): string => {
+    const value = process.env[key];
+    if (!value) throw new Error(`Missing required env var: ${key}`);
+    return value;
+  };
+
+  return {
+    anthropicApiKey: required("ANTHROPIC_API_KEY"),
+    topviewScriptsDir: required("TOPVIEW_SCRIPTS_DIR"),
+    avatarPhotoPath: required("AVATAR_PHOTO_PATH"),
+    avatarVoiceId: required("AVATAR_VOICE_ID"),
+    outputDir: path.resolve("output"),
+    publicDir: path.resolve("public"),
+  };
+}
