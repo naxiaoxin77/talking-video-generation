@@ -12,12 +12,13 @@ export function loadConfig(): PipelineConfig {
   };
 
   return {
-    anthropicApiKey: required("ANTHROPIC_API_KEY"),
+    geminiApiKey: required("GEMINI_API_KEY"),
     topviewScriptsDir: required("TOPVIEW_SCRIPTS_DIR"),
     avatarPhotoPath: required("AVATAR_PHOTO_PATH"),
     avatarVoiceId: required("AVATAR_VOICE_ID"),
     ttsSpeed: parseFloat(process.env.TTS_SPEED || "1.0"),
     ttsEmotion: process.env.TTS_EMOTION || "",
+    dynamicAvatar: process.env.DYNAMIC_AVATAR === "true",
     outputDir: path.resolve("output"),
     publicDir: path.resolve("public"),
   };

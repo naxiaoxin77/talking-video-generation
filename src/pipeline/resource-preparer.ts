@@ -6,8 +6,28 @@ import type { EnrichedSegment } from "./types.js";
 
 const execFileAsync = promisify(execFile);
 
+/** Find ffmpeg/ffprobe binary, checking PATH first, then common install locations */
+function findBinary(name: string): string {
+  if (process.platform === "win32") {
+    // Check common Windows install paths
+    const wingetPath = path.join(
+      process.env.LOCALAPPDATA || "",
+      "Microsoft", "WinGet", "Packages",
+      "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe",
+      "ffmpeg-8.1-full_build", "bin",
+      `${name}.exe`
+    );
+    if (fs.existsSync(wingetPath)) return wingetPath;
+  }
+  // Fallback: assume it's on PATH
+  return name;
+}
+
+const FFPROBE = findBinary("ffprobe");
+const FFMPEG = findBinary("ffmpeg");
+
 async function getVideoDuration(videoPath: string): Promise<number> {
-  const { stdout } = await execFileAsync("ffprobe", [
+  const { stdout } = await execFileAsync(FFPROBE, [
     "-v", "quiet",
     "-show_entries", "format=duration",
     "-of", "csv=p=0",
@@ -20,7 +40,7 @@ async function extractAudio(videoPath: string, audioPath: string): Promise<void>
   const dir = path.dirname(audioPath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  await execFileAsync("ffmpeg", [
+  await execFileAsync(FFMPEG, [
     "-i", videoPath,
     "-vn",
     "-acodec", "libmp3lame",

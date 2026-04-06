@@ -13,6 +13,18 @@ function getPythonCommand(): string {
   return process.platform === "win32" ? "python" : "python3";
 }
 
+/** Extract the first valid JSON object from a string that may contain log lines */
+function extractJson(output: string): any {
+  // Try parsing full output first
+  try { return JSON.parse(output); } catch {}
+  // Try to find a JSON object in the output
+  const match = output.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch {}
+  }
+  throw new Error(`Could not extract JSON from output: ${output.slice(0, 200)}`);
+}
+
 export class TopviewClient {
   constructor(private scriptsDir: string) {}
 
@@ -31,7 +43,10 @@ export class TopviewClient {
 
   async getBoardId(): Promise<string> {
     const output = await this.exec("board.py", ["list", "--default", "-q"]);
-    return output.trim();
+    // Extract UUID from output like "Get default 'My First Board' board id: 94dc..."
+    const match = output.match(/([0-9a-f]{32})/i);
+    if (!match) throw new Error(`Could not extract board ID from: ${output}`);
+    return match[1];
   }
 
   async submitAvatar4(
@@ -48,8 +63,12 @@ export class TopviewClient {
       "--board-id", boardId,
       "--json",
     ]);
-    const result = JSON.parse(output);
-    return result.taskId || output.trim();
+    try {
+      const result = extractJson(output);
+      return result.taskId || output.trim();
+    } catch {
+      return output.trim();
+    }
   }
 
   async queryAvatar4(taskId: string, timeout = 600): Promise<{ videoUrl: string }> {
@@ -59,8 +78,8 @@ export class TopviewClient {
       "--timeout", String(timeout),
       "--json",
     ]);
-    const result = JSON.parse(output);
-    const videoUrl = result.videoUrl || result.video_url || result.resultUrl;
+    const result = extractJson(output);
+    const videoUrl = result.videoUrl || result.video_url || result.resultUrl || result.finishedVideoUrl;
     if (!videoUrl) throw new Error(`No video URL in avatar4 result: ${output}`);
     return { videoUrl };
   }
@@ -80,8 +99,8 @@ export class TopviewClient {
       "--timeout", "600",
       "--json",
     ]);
-    const result = JSON.parse(output);
-    const videoUrl = result.videoUrl || result.video_url || result.resultUrl;
+    const result = extractJson(output);
+    const videoUrl = result.videoUrl || result.video_url || result.resultUrl || result.finishedVideoUrl;
     if (!videoUrl) throw new Error(`No video URL in avatar4 result: ${output}`);
     return { videoUrl };
   }
@@ -90,7 +109,8 @@ export class TopviewClient {
     prompt: string,
     aspectRatio = "9:16",
     model = "Nano Banana 2",
-    boardId?: string
+    boardId?: string,
+    resolution = "1K"
   ): Promise<{ imageUrl: string }> {
     const args = [
       "run",
@@ -98,13 +118,15 @@ export class TopviewClient {
       "--prompt", prompt,
       "--model", model,
       "--aspect-ratio", aspectRatio,
+      "--resolution", resolution,
+      "--timeout", "600",
       "--json",
     ];
     if (boardId) args.push("--board-id", boardId);
     const output = await this.exec("ai_image.py", args);
-    const result = JSON.parse(output);
+    const result = extractJson(output);
     const images = result.images || result.resultImages || [];
-    const imageUrl = images[0]?.url || images[0]?.imageUrl || images[0];
+    const imageUrl = images[0]?.url || images[0]?.imageUrl || images[0]?.filePath || images[0];
     if (!imageUrl) throw new Error(`No image URL in ai_image result: ${output}`);
     return { imageUrl: typeof imageUrl === "string" ? imageUrl : imageUrl.url };
   }
@@ -124,8 +146,13 @@ export class TopviewClient {
     if (options?.emotion) args.push("--emotion", options.emotion);
     if (options?.boardId) args.push("--board-id", options.boardId);
     const output = await this.exec("text2voice.py", args);
-    const result = JSON.parse(output);
-    return result.taskId || output.trim();
+    try {
+      const result = JSON.parse(output);
+      return result.taskId || output.trim();
+    } catch {
+      // Output might be a raw task ID string
+      return output.trim();
+    }
   }
 
   async queryText2Voice(taskId: string, timeout = 300): Promise<{ audioUrl: string }> {
@@ -135,8 +162,8 @@ export class TopviewClient {
       "--timeout", String(timeout),
       "--json",
     ]);
-    const result = JSON.parse(output);
-    const audioUrl = result.audioUrl || result.audio_url || result.resultUrl;
+    const result = extractJson(output);
+    const audioUrl = result.audioUrl || result.audio_url || result.resultUrl || result.voice?.demoAudioUrl;
     if (!audioUrl) throw new Error(`No audio URL in text2voice result: ${output}`);
     return { audioUrl };
   }
@@ -153,8 +180,44 @@ export class TopviewClient {
       "--board-id", boardId,
       "--json",
     ]);
-    const result = JSON.parse(output);
-    return result.taskId || output.trim();
+    try {
+      const result = extractJson(output);
+      return result.taskId || output.trim();
+    } catch {
+      return output.trim();
+    }
+  }
+
+  async runImageEdit(
+    prompt: string,
+    inputImages: string[],
+    options?: {
+      model?: string;
+      aspectRatio?: string;
+      resolution?: string;
+      timeout?: number;
+      boardId?: string;
+    }
+  ): Promise<{ imageUrl: string }> {
+    const model = options?.model || "Nano Banana 2";
+    const args = [
+      "run",
+      "--type", "image_edit",
+      "--prompt", prompt,
+      "--model", model,
+      "--aspect-ratio", options?.aspectRatio || "auto",
+      "--input-images", ...inputImages,
+      "--timeout", String(options?.timeout || 600),
+      "--json",
+    ];
+    if (options?.resolution) args.push("--resolution", options.resolution);
+    if (options?.boardId) args.push("--board-id", options.boardId);
+    const output = await this.exec("ai_image.py", args);
+    const result = extractJson(output);
+    const images = result.images || result.resultImages || [];
+    const imageUrl = images[0]?.url || images[0]?.imageUrl || images[0]?.filePath || images[0];
+    if (!imageUrl) throw new Error(`No image URL in image_edit result: ${output}`);
+    return { imageUrl: typeof imageUrl === "string" ? imageUrl : imageUrl.url };
   }
 
   async listVoices(language?: string): Promise<string> {

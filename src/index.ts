@@ -3,8 +3,8 @@ import path from "path";
 import { loadConfig } from "./utils/config.js";
 import { TopviewClient } from "./utils/topview.js";
 import { generateScript } from "./pipeline/script-generator.js";
+import { generateDynamicAvatar } from "./pipeline/avatar-style-generator.js";
 import { generateAvatarVideos } from "./pipeline/avatar-generator.js";
-import { generateBrollImages } from "./pipeline/broll-generator.js";
 import { prepareResources } from "./pipeline/resource-preparer.js";
 import { renderVideo } from "./remotion/render.js";
 import type { CompositionProps } from "./pipeline/types.js";
@@ -13,9 +13,10 @@ async function main() {
   const args = process.argv.slice(2);
   const inputIndex = args.indexOf("--input");
   const outputIndex = args.indexOf("--output");
+  const useDefaultAvatar = args.includes("--default-avatar");
 
   if (inputIndex === -1) {
-    console.error("Usage: npx tsx src/index.ts --input <article.txt> [--output <output.mp4>]");
+    console.error("Usage: npx tsx src/index.ts --input <article.txt> [--output <output.mp4>] [--default-avatar]");
     process.exit(1);
   }
 
@@ -40,7 +41,7 @@ async function main() {
   // Step 1: Generate script from article
   console.log("\n=== Step 1: Generating script from article ===");
   const articleText = fs.readFileSync(inputPath, "utf-8");
-  const script = await generateScript(articleText, config.anthropicApiKey);
+  const script = await generateScript(articleText, config.geminiApiKey);
   console.log(`Script: "${script.title}" — ${script.segments.length} segments`);
 
   // Save script for debugging
@@ -49,10 +50,31 @@ async function main() {
   fs.writeFileSync(scriptPath, JSON.stringify(script, null, 2), "utf-8");
   console.log(`Script saved to: ${scriptPath}`);
 
+  // Step 1.5: Dynamic avatar style (optional)
+  const enableDynamic = config.dynamicAvatar && !useDefaultAvatar;
+  let avatarPhotoPath = config.avatarPhotoPath;
+
+  if (enableDynamic) {
+    console.log("\n=== Step 1.5: Generating dynamic avatar style ===");
+    try {
+      avatarPhotoPath = await generateDynamicAvatar(
+        articleText,
+        config.avatarPhotoPath,
+        { geminiApiKey: config.geminiApiKey, boardId, publicDir: config.publicDir },
+        topview
+      );
+    } catch (err) {
+      console.error("  Dynamic avatar generation failed, falling back to default:", err);
+      avatarPhotoPath = config.avatarPhotoPath;
+    }
+  } else {
+    console.log(`\n=== Skipping dynamic avatar (${useDefaultAvatar ? "CLI flag" : "DYNAMIC_AVATAR=false"}) ===`);
+  }
+
   // Step 2a: Generate avatar videos for ALL segments
   console.log("\n=== Step 2a: Generating avatar videos ===");
   const avatarSegments = await generateAvatarVideos(script.segments, topview, {
-    avatarPhotoPath: config.avatarPhotoPath,
+    avatarPhotoPath,
     voiceId: config.avatarVoiceId,
     boardId,
     publicDir: config.publicDir,
@@ -60,19 +82,12 @@ async function main() {
     ttsEmotion: config.ttsEmotion,
   });
 
-  // Step 2b: Generate B-roll images
-  console.log("\n=== Step 2b: Generating B-roll images ===");
-  let segments = await generateBrollImages(avatarSegments, topview, {
-    boardId,
-    publicDir: config.publicDir,
-  });
+  // Step 2b: Prepare resources (extract audio, get durations)
+  console.log("\n=== Step 2b: Preparing resources ===");
+  const segments = await prepareResources(avatarSegments, config.publicDir);
 
-  // Step 3: Prepare resources (extract audio, get durations)
-  console.log("\n=== Step 3: Preparing resources ===");
-  segments = await prepareResources(segments, config.publicDir);
-
-  // Step 4: Render with Remotion
-  console.log("\n=== Step 4: Rendering video ===");
+  // Step 3: Render with Remotion
+  console.log("\n=== Step 3: Rendering video ===");
   const compositionProps: CompositionProps = {
     segments,
     fps: 30,
@@ -82,14 +97,20 @@ async function main() {
 
   const finalPath = await renderVideo(compositionProps, outputPath);
 
-  // Step 5: Cleanup temporary resources
-  console.log("\n=== Step 5: Cleaning up temporary files ===");
-  const dirsToClean = ["avatars", "broll", "audio", "tts"].map(d => path.join(config.publicDir, d));
+  // Step 4: Cleanup temporary resources
+  console.log("\n=== Step 4: Cleaning up temporary files ===");
+  const dirsToClean = ["avatars", "audio", "tts"].map(d => path.join(config.publicDir, d));
+  // Also clean generated avatar
+  const styledAvatar = path.join(config.publicDir, "avatar-styled.jpg");
   for (const dir of dirsToClean) {
     if (fs.existsSync(dir)) {
       fs.rmSync(dir, { recursive: true, force: true });
       console.log(`  Removed: ${dir}`);
     }
+  }
+  if (fs.existsSync(styledAvatar)) {
+    fs.rmSync(styledAvatar);
+    console.log(`  Removed: ${styledAvatar}`);
   }
 
   console.log(`\nDone! Video saved to: ${finalPath}`);

@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "parameters": {
+    "tts_speed": {
+      "value": 1.10,
+      "type": "number",
+      "range": [0.5, 2.0],
+      "description": "TTS 语音速度"
+    },
+    "tts_emotion": {
+      "value": "happy",
+      "type": "string",
+      "options": ["", "happy", "sad", "angry", "surprised"],
+      "description": "TTS 语音情感"
+    },
+    "dynamic_avatar": {
+      "value": false,
+      "type": "boolean",
+      "description": "是否根据文章内容动态生成 Avatar 形象"
+    },
+    "video_fps": {
+      "value": 30,
+      "type": "integer",
+      "range": [24, 60],
+      "description": "输出视频帧率"
+    },
+    "video_width": {
+      "value": 1080,
+      "type": "integer",
+      "description": "输出视频宽度"
+    },
+    "video_height": {
+      "value": 1920,
+      "type": "integer",
+      "description": "输出视频高度"
+    },
+    "transition_duration": {
+      "value": 0.5,
+      "type": "number",
+      "range": [0, 2.0],
+      "description": "段落间转场时长（秒）"
+    },
+    "avatar_image_model": {
+      "value": "Nano Banana 2",
+      "type": "string",
+      "description": "动态 Avatar 生图模型"
+    },
+    "avatar_image_aspect_ratio": {
+      "value": "3:4",
+      "type": "string",
+      "options": ["1:1", "3:4", "9:16"],
+      "description": "动态 Avatar 图片比例"
+    }
+  }
+}

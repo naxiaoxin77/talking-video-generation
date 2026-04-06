@@ -4,4 +4,7 @@ dist/
 public/avatars/
 public/broll/
 public/audio/
-output/*.mp4
+public/tts/
+public/avatar-styled.jpg
+output/
+.claude/

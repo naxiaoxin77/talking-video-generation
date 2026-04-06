@@ -1,8 +1,8 @@
 import React from "react";
 import { Composition, registerRoot } from "remotion";
 import type { CalculateMetadataFunction } from "remotion";
-import { TalkingVideo } from "./TalkingVideo.js";
-import type { CompositionProps } from "../pipeline/types.js";
+import { TalkingVideo } from "./TalkingVideo";
+import type { CompositionProps } from "../pipeline/types";
 
 // Remotion requires props to satisfy Record<string, unknown>
 type RemotionCompositionProps = CompositionProps & Record<string, unknown>;
