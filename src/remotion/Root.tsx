@@ -4,7 +4,6 @@ import type { CalculateMetadataFunction } from "remotion";
 import { TalkingVideo } from "./TalkingVideo";
 import type { CompositionProps } from "../pipeline/types";
 
-// Remotion requires props to satisfy Record<string, unknown>
 type RemotionCompositionProps = CompositionProps & Record<string, unknown>;
 
 const FPS = 30;
@@ -14,13 +13,8 @@ const HEIGHT = 1920;
 const calculateMetadata: CalculateMetadataFunction<RemotionCompositionProps> = async ({
   props,
 }) => {
-  const totalSeconds = props.segments.reduce((sum, seg) => {
-    return sum + (seg.avatarDuration || seg.durationHint);
-  }, 0);
-
-  // 硬切模式：无转场重叠
   return {
-    durationInFrames: Math.ceil(totalSeconds * FPS),
+    durationInFrames: Math.ceil((props.totalDuration || 10) * FPS),
     fps: FPS,
     width: WIDTH,
     height: HEIGHT,
@@ -28,7 +22,9 @@ const calculateMetadata: CalculateMetadataFunction<RemotionCompositionProps> = a
 };
 
 const defaultProps: RemotionCompositionProps = {
-  segments: [],
+  avatarVideoPath: "avatars/main.mp4",
+  totalDuration: 60,
+  overlays: [],
   fps: FPS,
   width: WIDTH,
   height: HEIGHT,

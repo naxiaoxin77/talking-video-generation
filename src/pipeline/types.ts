@@ -54,42 +54,32 @@ export type SlideData =
 
 // ====== Pipeline Types ======
 
-export interface VideoScript {
+/** Step 1 output: plain oral script */
+export interface OralScript {
   title: string;
-  totalDurationEstimate: number;
-  segments: Segment[];
-  videoTitle?: string;        // 短视频平台标题（≤30字）
-  videoDescription?: string;  // 短视频简介（≤100字）
+  text: string;             // full oral text, no segment splitting
+  videoTitle?: string;      // short-video platform title (≤30 chars)
+  videoDescription?: string; // platform description (≤100 chars)
 }
 
-export interface Segment {
-  id: string;
-  type: "avatar" | "broll";
-  text: string;
-  durationHint: number;
-  voiceStyle?: string;
-  slideData?: SlideData;
-  // Legacy fields (kept for backward compat)
-  brollPrompt?: string;
-  brollStyle?: string;
+/** One B-roll overlay with precise timestamps */
+export interface OverlayItem {
+  start: number;      // seconds
+  end: number;        // seconds
+  slideData: SlideData;
 }
 
-export interface EnrichedSegment extends Segment {
-  avatarVideoUrl?: string;
-  avatarVideoPath?: string;
-  avatarDuration?: number;
-  brollImageUrl?: string;
-  brollImagePath?: string;
-  audioPath?: string;
-}
-
+/** Props passed to the Remotion composition */
 export interface CompositionProps {
-  segments: EnrichedSegment[];
+  avatarVideoPath: string;  // relative to public/
+  totalDuration: number;    // seconds (from ffprobe)
+  overlays: OverlayItem[];
   fps: number;
   width: number;
   height: number;
 }
 
+/** Pipeline runtime configuration */
 export interface PipelineConfig {
   geminiApiKey: string;
   topviewScriptsDir: string;

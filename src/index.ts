@@ -2,10 +2,12 @@ import fs from "fs";
 import path from "path";
 import { loadConfig } from "./utils/config.js";
 import { TopviewClient } from "./utils/topview.js";
-import { generateScript } from "./pipeline/script-generator.js";
+import { getMediaDuration } from "./utils/duration.js";
+import { generateOralScript } from "./pipeline/script-generator.js";
 import { generateDynamicAvatar } from "./pipeline/avatar-style-generator.js";
-import { generateAvatarVideos } from "./pipeline/avatar-generator.js";
-import { prepareResources } from "./pipeline/resource-preparer.js";
+import { generateAvatarVideo } from "./pipeline/avatar-generator.js";
+import { generateSrt } from "./pipeline/srt-generator.js";
+import { generateOverlays } from "./pipeline/overlay-planner.js";
 import { renderVideo } from "./remotion/render.js";
 import type { CompositionProps } from "./pipeline/types.js";
 
@@ -34,24 +36,26 @@ async function main() {
   const config = loadConfig();
   const topview = new TopviewClient(config.topviewScriptsDir);
 
-  // Step 0: Get Topview board ID
+  // ── Step 0: Topview board ID ───────────────────────────────────
   console.log("\n=== Step 0: Getting Topview board ID ===");
   const boardId = await topview.getBoardId();
   console.log(`Board ID: ${boardId}`);
 
-  // Step 1: Generate script from article
-  console.log("\n=== Step 1: Generating script from article ===");
+  // ── Step 1: Generate oral script ──────────────────────────────
+  console.log("\n=== Step 1: Generating oral script ===");
   const articleText = fs.readFileSync(inputPath, "utf-8");
-  const script = await generateScript(articleText, config.geminiApiKey);
-  console.log(`Script: "${script.title}" — ${script.segments.length} segments`);
+  const script = await generateOralScript(articleText, config.geminiApiKey);
+  console.log(`Script: "${script.title}"`);
+  console.log(`Text length: ${script.text.length} chars`);
 
-  // Save script for debugging
   fs.mkdirSync(config.outputDir, { recursive: true });
-  const scriptPath = path.join(config.outputDir, "script.json");
-  fs.writeFileSync(scriptPath, JSON.stringify(script, null, 2), "utf-8");
-  console.log(`Script saved to: ${scriptPath}`);
+  fs.writeFileSync(
+    path.join(config.outputDir, "script.json"),
+    JSON.stringify(script, null, 2),
+    "utf-8"
+  );
 
-  // Step 1.5: Dynamic avatar style (optional)
+  // ── Step 1.5: Dynamic avatar style (optional) ─────────────────
   const enableDynamic = config.dynamicAvatar && !useDefaultAvatar;
   let avatarPhotoPath = config.avatarPhotoPath;
 
@@ -65,33 +69,59 @@ async function main() {
         topview
       );
     } catch (err) {
-      console.error("  Dynamic avatar generation failed, falling back to default:", err);
+      console.error("  Dynamic avatar failed, using default:", err);
       avatarPhotoPath = config.avatarPhotoPath;
     }
   } else {
-    console.log(`\n=== Skipping dynamic avatar (${useDefaultAvatar ? "CLI flag" : "DYNAMIC_AVATAR=false"}) ===`);
+    console.log(`\n=== Skipping dynamic avatar (${useDefaultAvatar ? "--default-avatar flag" : "DYNAMIC_AVATAR=false"}) ===`);
   }
 
-  // Step 2a: Generate avatar videos for ALL segments
-  console.log("\n=== Step 2a: Generating avatar videos ===");
-  const avatarSegments = await generateAvatarVideos(script.segments, topview, {
-    avatarPhotoPath,
-    voiceId: config.avatarVoiceId,
-    boardId,
-    publicDir: config.publicDir,
-    ttsSpeed: config.ttsSpeed,
-    ttsEmotion: config.ttsEmotion,
-    captionId: config.captionId || undefined,
-  });
+  // ── Step 2: TTS → audio → avatar video ────────────────────────
+  console.log("\n=== Step 2: Generating TTS audio + avatar video ===");
+  const { absoluteAudioPath, absoluteVideoPath, avatarVideoPath } = await generateAvatarVideo(
+    script.text,
+    topview,
+    {
+      avatarPhotoPath,
+      voiceId: config.avatarVoiceId,
+      boardId,
+      publicDir: config.publicDir,
+      ttsSpeed: config.ttsSpeed,
+      ttsEmotion: config.ttsEmotion,
+      captionId: config.captionId || undefined,
+    }
+  );
 
-  // Step 2b: Prepare resources (extract audio, get durations)
-  console.log("\n=== Step 2b: Preparing resources ===");
-  const segments = await prepareResources(avatarSegments, config.publicDir);
+  // ── Step 3: Parallel — SRT transcription + video duration ─────
+  console.log("\n=== Step 3: SRT transcription + duration probe (parallel) ===");
+  const [srtContent, videoDuration] = await Promise.all([
+    generateSrt(absoluteAudioPath, config.geminiApiKey),
+    getMediaDuration(absoluteVideoPath),
+  ]);
 
-  // Step 3: Render with Remotion
-  console.log("\n=== Step 3: Rendering video ===");
+  console.log(`  Video duration: ${videoDuration.toFixed(1)}s`);
+
+  const srtPath = path.join(config.outputDir, "subtitles.srt");
+  fs.writeFileSync(srtPath, srtContent, "utf-8");
+  console.log(`  SRT saved: ${srtPath}`);
+
+  // ── Step 4: Overlay plan from SRT ─────────────────────────────
+  console.log("\n=== Step 4: Generating overlay plan ===");
+  const overlays = await generateOverlays(srtContent, config.geminiApiKey);
+
+  fs.writeFileSync(
+    path.join(config.outputDir, "overlays.json"),
+    JSON.stringify(overlays, null, 2),
+    "utf-8"
+  );
+  console.log(`  ${overlays.length} overlays planned`);
+
+  // ── Step 5: Render with Remotion ──────────────────────────────
+  console.log("\n=== Step 5: Rendering video ===");
   const compositionProps: CompositionProps = {
-    segments,
+    avatarVideoPath,
+    totalDuration: videoDuration,
+    overlays,
     fps: 30,
     width: 1080,
     height: 1920,
@@ -99,19 +129,25 @@ async function main() {
 
   const finalPath = await renderVideo(compositionProps, outputPath);
 
-  // Step 4: Cleanup or keep temporary resources
+  // ── Step 6: Save metadata ─────────────────────────────────────
+  const metadataPath = path.join(config.outputDir, "metadata.md");
+  fs.writeFileSync(
+    metadataPath,
+    `# ${script.videoTitle || script.title}\n\n${script.videoDescription || ""}\n`,
+    "utf-8"
+  );
+  console.log(`  Metadata saved: ${metadataPath}`);
+
+  // ── Step 7: Cleanup ───────────────────────────────────────────
   if (keepArtifacts) {
-    console.log("\n=== Step 4: Keeping intermediate files (--keep) ===");
-    console.log(`  Avatar videos: ${path.join(config.publicDir, "avatars")}`);
-    console.log(`  TTS audio:     ${path.join(config.publicDir, "tts")}`);
-    console.log(`  B-roll audio:  ${path.join(config.publicDir, "audio")}`);
-    const styledAvatar = path.join(config.publicDir, "avatar-styled.jpg");
-    if (fs.existsSync(styledAvatar)) {
-      console.log(`  Styled avatar: ${styledAvatar}`);
-    }
+    console.log("\n=== Step 7: Keeping intermediate files (--keep) ===");
+    console.log(`  TTS audio:    ${absoluteAudioPath}`);
+    console.log(`  Avatar video: ${absoluteVideoPath}`);
+    console.log(`  SRT:          ${srtPath}`);
+    console.log(`  Overlays:     ${path.join(config.outputDir, "overlays.json")}`);
   } else {
-    console.log("\n=== Step 4: Cleaning up temporary files ===");
-    const dirsToClean = ["avatars", "audio", "tts"].map(d => path.join(config.publicDir, d));
+    console.log("\n=== Step 7: Cleaning up temporary files ===");
+    const dirsToClean = ["avatars", "tts"].map(d => path.join(config.publicDir, d));
     const styledAvatar = path.join(config.publicDir, "avatar-styled.jpg");
     for (const dir of dirsToClean) {
       if (fs.existsSync(dir)) {
@@ -125,7 +161,8 @@ async function main() {
     }
   }
 
-  console.log(`\nDone! Video saved to: ${finalPath}`);
+  console.log(`\nDone! Video: ${finalPath}`);
+  console.log(`SRT:   ${srtPath}`);
 }
 
 main().catch((err) => {

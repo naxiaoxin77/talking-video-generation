@@ -1,38 +1,32 @@
 import React from "react";
-import { AbsoluteFill, Series, useVideoConfig } from "remotion";
+import { AbsoluteFill, OffthreadVideo, Sequence, staticFile, useVideoConfig } from "remotion";
 import type { CompositionProps } from "../pipeline/types";
-import { AvatarSegment } from "./components/AvatarSegment";
-import { BrollSegment } from "./components/BrollSegment";
+import { BrollOverlay } from "./components/BrollOverlay";
 
-export const TalkingVideo: React.FC<CompositionProps> = ({ segments }) => {
+export const TalkingVideo: React.FC<CompositionProps> = ({ avatarVideoPath, overlays }) => {
   const { fps } = useVideoConfig();
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "black" }}>
-      <Series>
-        {segments.map((segment) => {
-          const duration = segment.avatarDuration || segment.durationHint;
-          const durationInFrames = Math.ceil(duration * fps);
+    <AbsoluteFill style={{ backgroundColor: "#000" }}>
+      {/* ── Full-screen avatar video (Topview, includes lip-sync + native captions) ── */}
+      <OffthreadVideo
+        src={staticFile(avatarVideoPath)}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
 
-          return (
-            <Series.Sequence key={segment.id} durationInFrames={durationInFrames}>
-              {segment.type === "avatar" || !segment.slideData ? (
-                <AvatarSegment
-                  videoSrc={segment.avatarVideoPath!}
-                />
-              ) : (
-                <BrollSegment
-                  slideData={segment.slideData}
-                  audioSrc={segment.audioPath!}
-                  avatarVideoSrc={segment.avatarVideoPath!}
-                  durationInFrames={durationInFrames}
-                  subtitleText={segment.text}
-                />
-              )}
-            </Series.Sequence>
-          );
-        })}
-      </Series>
+      {/* ── Timed B-roll overlay cards ── */}
+      {overlays.map((overlay, i) => {
+        const fromFrame = Math.floor(overlay.start * fps);
+        const durFrames = Math.max(1, Math.ceil((overlay.end - overlay.start) * fps));
+        return (
+          <Sequence key={i} from={fromFrame} durationInFrames={durFrames}>
+            <BrollOverlay
+              slideData={overlay.slideData}
+              durationInFrames={durFrames}
+            />
+          </Sequence>
+        );
+      })}
     </AbsoluteFill>
   );
 };

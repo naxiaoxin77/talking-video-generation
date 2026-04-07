@@ -25,7 +25,7 @@ export async function generateDynamicAvatar(
   console.log("  Generating avatar style prompt...");
   const genAI = new GoogleGenerativeAI(config.geminiApiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-flash-latest",
     systemInstruction: AVATAR_STYLE_SYSTEM_PROMPT,
   });
 

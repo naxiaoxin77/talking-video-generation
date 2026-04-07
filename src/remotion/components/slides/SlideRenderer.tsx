@@ -9,18 +9,25 @@ import { TimelineSlide } from "./TimelineSlide";
 export const SlideRenderer: React.FC<{
   slideData: SlideData;
   durationInFrames: number;
-}> = ({ slideData, durationInFrames }) => {
-  switch (slideData.layout) {
+  /** When true, renders with transparent background so the BrollOverlay card backdrop shows through */
+  overlayMode?: boolean;
+}> = ({ slideData, durationInFrames, overlayMode }) => {
+  // In overlay mode, override background to transparent
+  const data: SlideData = overlayMode
+    ? { ...slideData, theme: { ...slideData.theme, background: "transparent" } }
+    : slideData;
+
+  switch (data.layout) {
     case "bullet-list":
-      return <BulletListSlide data={slideData} durationInFrames={durationInFrames} />;
+      return <BulletListSlide data={data} durationInFrames={durationInFrames} />;
     case "big-number":
-      return <BigNumberSlide data={slideData} durationInFrames={durationInFrames} />;
+      return <BigNumberSlide data={data} durationInFrames={durationInFrames} />;
     case "comparison":
-      return <ComparisonSlide data={slideData} durationInFrames={durationInFrames} />;
+      return <ComparisonSlide data={data} durationInFrames={durationInFrames} />;
     case "quote":
-      return <QuoteSlide data={slideData} durationInFrames={durationInFrames} />;
+      return <QuoteSlide data={data} durationInFrames={durationInFrames} />;
     case "timeline":
-      return <TimelineSlide data={slideData} durationInFrames={durationInFrames} />;
+      return <TimelineSlide data={data} durationInFrames={durationInFrames} />;
     default:
       return null;
   }
