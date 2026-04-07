@@ -45,7 +45,7 @@ export const BigNumberSlide: React.FC<{
       });
 
   return (
-    <SlideBackground theme={data.theme}>
+    <SlideBackground theme={data.theme} durationInFrames={durationInFrames}>
       <SlideTitle opacity={titleOpacity} translateY={titleY} accent={theme.accent}>
         {data.title}
       </SlideTitle>

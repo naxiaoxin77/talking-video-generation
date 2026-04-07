@@ -39,6 +39,32 @@ export const designConfig = {
     textShadow: "none",
   },
 
+  // ========== B-roll 动效 ==========
+  effects: {
+    /** 镜头缓推：整个 slide 从初始比例缓慢放大 */
+    cameraPush: {
+      enabled: true,
+      /** 起始缩放（1.0 = 原始大小） */
+      scaleFrom: 1.0,
+      /** 结束缩放 */
+      scaleTo: 1.06,
+    },
+    /** 光效扫过：一道白色光带从左向右划过 */
+    lightSweep: {
+      enabled: true,
+      /** 扫过开始帧（在标题入场后触发） */
+      startFrame: 18,
+      /** 扫过持续帧数 */
+      duration: 25,
+      /** 光带宽度（像素） */
+      width: 120,
+      /** 光带最大不透明度 */
+      opacity: 0.18,
+      /** 光带倾斜角度（度） */
+      angle: 20,
+    },
+  },
+
   // ========== 画中画（B-roll 人物小窗） ==========
   pip: {
     /** 圆形直径 */

@@ -31,9 +31,12 @@ const SYSTEM_PROMPT = `你是一个专业的短视频脚本编剧。你的任务
    - 每段口播文字 15-30 秒（中文约 45-90 字）
    - 总时长控制在 60-120 秒
    - 重要：每个 segment 都必须有 text 字段（口播文字），包括 broll 段！broll 段的 text 是画外音旁白
+   - 风格轻松+新闻评论；
 
 3. 口播文字风格：
    - 口语化，像在和朋友聊天
+   - 适当加入停顿标记<#x#>，x在0.01~0.5且不连续；不超过两个，
+   - 可适度加入语气标签(仅允许： (laughs),(chuckle),(coughs),(clear-throat),(breath),(pant),(inhale),(exhale),(gasps),(sniffs),(sighs),(lip-smacking),(humming),(hissing),(emm), 总数不超过3个；
    - 开头要有吸引力（hook）
    - 结尾要有行动号召（CTA）
 
@@ -41,7 +44,8 @@ const SYSTEM_PROMPT = `你是一个专业的短视频脚本编剧。你的任务
    broll 段需要提供 slideData 字段，用于渲染动画幻灯片。支持 5 种布局：
 
    a) bullet-list（要点列表）— 适合列举多个要点
-      { "layout": "bullet-list", "title": "标题", "items": [{"icon": "emoji", "text": "内容"}] }
+      { "layout": "bullet-list", "title": "标题", "items": [{"icon": "·", "text": "内容"}] }
+      注意：icon 字段禁止使用 emoji，只能使用 "·" 或留空字符串 ""
 
    b) big-number（大数字）— 适合展示数据/统计
       { "layout": "big-number", "title": "标题", "number": 数字, "unit": "单位", "subtitle": "说明" }

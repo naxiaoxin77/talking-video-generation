@@ -34,7 +34,7 @@ export const ComparisonSlide: React.FC<{
   const itemStagger = Math.min(dcmp.maxItemStagger, Math.floor((durationInFrames * 0.4) / Math.max(maxItems, 1)));
 
   return (
-    <SlideBackground theme={data.theme}>
+    <SlideBackground theme={data.theme} durationInFrames={durationInFrames}>
       <SlideTitle opacity={titleOpacity} translateY={titleY} accent={theme.accent}>
         {data.title}
       </SlideTitle>

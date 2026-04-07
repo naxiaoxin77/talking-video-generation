@@ -30,7 +30,7 @@ export async function generateDynamicAvatar(
   });
 
   const result = await model.generateContent(
-    `根据以下文章内容，设计主播的亲历者形象：\n\n${articleText}`
+    `根据以下文章内容，设计主播的亲历者/旁观者形象：\n\n${articleText}`
   );
 
   const avatarPrompt = result.response.text().trim();

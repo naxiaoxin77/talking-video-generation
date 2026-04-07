@@ -228,6 +228,7 @@ async function main() {
   const today = dateIndex !== -1
     ? args[dateIndex + 1]
     : new Date().toISOString().slice(0, 10);
+  const keepArtifacts = args.includes("--keep");
 
   console.log(`\n${"=".repeat(60)}`);
   console.log(`🎬 批量视频生成工作流`);
@@ -355,15 +356,19 @@ async function main() {
       console.log("  ✏️ 更新 video_status → done...");
       obsidianPropertySet(article.vaultPath, "video_status", "done");
 
-      // 2i: 清理临时文件
-      cleanupTempFiles(config.publicDir);
+      // 2i: 清理或保留临时文件
+      if (!keepArtifacts) {
+        cleanupTempFiles(config.publicDir);
+      } else {
+        console.log("  📦 保留中间文件 (--keep)");
+      }
 
       console.log(`  ✅ 完成！视频: ${outputVideoPath}`);
       results.push({ article, success: true, videoPath: outputVideoPath });
 
     } catch (err: any) {
       console.error(`  ❌ 失败: ${err.message}`);
-      cleanupTempFiles(config.publicDir);
+      if (!keepArtifacts) cleanupTempFiles(config.publicDir);
       results.push({ article, success: false, error: err.message });
     }
   }

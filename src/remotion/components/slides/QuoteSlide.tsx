@@ -49,7 +49,7 @@ export const QuoteSlide: React.FC<{
   });
 
   return (
-    <SlideBackground theme={data.theme}>
+    <SlideBackground theme={data.theme} durationInFrames={durationInFrames}>
       {/* Decorative quotation mark */}
       <div
         style={{

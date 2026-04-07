@@ -22,7 +22,7 @@ export const BulletListSlide: React.FC<{
   const staggerDelay = Math.min(db.maxStaggerDelay, Math.floor((durationInFrames * 0.6) / Math.max(data.items.length, 1)));
 
   return (
-    <SlideBackground theme={data.theme}>
+    <SlideBackground theme={data.theme} durationInFrames={durationInFrames}>
       <SlideTitle opacity={titleOpacity} translateY={titleY} accent={theme.accent}>
         {data.title}
       </SlideTitle>
@@ -59,7 +59,7 @@ export const BulletListSlide: React.FC<{
                   flexShrink: 0,
                 }}
               >
-                {item.icon || "\u2022"}
+                {item.icon || "·"}
               </div>
               <div style={{ fontSize: db.textFontSize, fontWeight: db.textFontWeight, lineHeight: 1.4 }}>
                 {item.text}

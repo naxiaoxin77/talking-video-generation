@@ -14,9 +14,10 @@ async function main() {
   const inputIndex = args.indexOf("--input");
   const outputIndex = args.indexOf("--output");
   const useDefaultAvatar = args.includes("--default-avatar");
+  const keepArtifacts = args.includes("--keep");
 
   if (inputIndex === -1) {
-    console.error("Usage: npx tsx src/index.ts --input <article.txt> [--output <output.mp4>] [--default-avatar]");
+    console.error("Usage: npx tsx src/index.ts --input <article.txt> [--output <output.mp4>] [--default-avatar] [--keep]");
     process.exit(1);
   }
 
@@ -98,20 +99,30 @@ async function main() {
 
   const finalPath = await renderVideo(compositionProps, outputPath);
 
-  // Step 4: Cleanup temporary resources
-  console.log("\n=== Step 4: Cleaning up temporary files ===");
-  const dirsToClean = ["avatars", "audio", "tts"].map(d => path.join(config.publicDir, d));
-  // Also clean generated avatar
-  const styledAvatar = path.join(config.publicDir, "avatar-styled.jpg");
-  for (const dir of dirsToClean) {
-    if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true, force: true });
-      console.log(`  Removed: ${dir}`);
+  // Step 4: Cleanup or keep temporary resources
+  if (keepArtifacts) {
+    console.log("\n=== Step 4: Keeping intermediate files (--keep) ===");
+    console.log(`  Avatar videos: ${path.join(config.publicDir, "avatars")}`);
+    console.log(`  TTS audio:     ${path.join(config.publicDir, "tts")}`);
+    console.log(`  B-roll audio:  ${path.join(config.publicDir, "audio")}`);
+    const styledAvatar = path.join(config.publicDir, "avatar-styled.jpg");
+    if (fs.existsSync(styledAvatar)) {
+      console.log(`  Styled avatar: ${styledAvatar}`);
     }
-  }
-  if (fs.existsSync(styledAvatar)) {
-    fs.rmSync(styledAvatar);
-    console.log(`  Removed: ${styledAvatar}`);
+  } else {
+    console.log("\n=== Step 4: Cleaning up temporary files ===");
+    const dirsToClean = ["avatars", "audio", "tts"].map(d => path.join(config.publicDir, d));
+    const styledAvatar = path.join(config.publicDir, "avatar-styled.jpg");
+    for (const dir of dirsToClean) {
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+        console.log(`  Removed: ${dir}`);
+      }
+    }
+    if (fs.existsSync(styledAvatar)) {
+      fs.rmSync(styledAvatar);
+      console.log(`  Removed: ${styledAvatar}`);
+    }
   }
 
   console.log(`\nDone! Video saved to: ${finalPath}`);

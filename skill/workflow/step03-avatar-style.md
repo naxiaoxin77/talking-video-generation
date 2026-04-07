@@ -18,12 +18,12 @@
 **Phase 1: LLM 生成形象描述**：
 - 调用 Gemini 根据文章内容生成英文 prompt
 - Prompt 配置在 `src/pipeline/avatar-style.prompt.ts`
-- 输出约 50-100 个英文单词的形象描述
+- 输出约 100-200 个英文单词的形象描述
 
 **Phase 2: Topview image_edit 生图**：
 - 模型：`Nano Banana 2`（免费）
 - 输入图片：原始 avatar 照片
-- 比例：`3:4`，分辨率 `1K`
+- 比例：`3:4`，分辨率 `2K`
 - 超时：600 秒
 
 **Phase 3: 下载保存**：
