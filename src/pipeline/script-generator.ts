@@ -12,6 +12,8 @@ const SYSTEM_PROMPT = `你是一个专业的短视频脚本编剧。你的任务
    interface VideoScript {
      title: string;
      totalDurationEstimate: number;
+     videoTitle: string;        // 短视频平台标题，简短吸引人，不超过30字
+     videoDescription: string;  // 短视频简介，不超过100字，概括核心观点
      segments: Array<{
        id: string;
        type: "avatar" | "broll";
@@ -75,7 +77,7 @@ export async function generateScript(
 ): Promise<VideoScript> {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-flash-latest",
     systemInstruction: SYSTEM_PROMPT,
   });
 

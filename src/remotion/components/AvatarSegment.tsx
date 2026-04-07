@@ -1,13 +1,11 @@
 import React from "react";
 import { AbsoluteFill, OffthreadVideo, staticFile } from "remotion";
-import { SubtitleOverlay } from "./SubtitleOverlay";
 
 type Props = {
   videoSrc: string;
-  subtitleText?: string;
 };
 
-export const AvatarSegment: React.FC<Props> = ({ videoSrc, subtitleText }) => {
+export const AvatarSegment: React.FC<Props> = ({ videoSrc }) => {
   return (
     <AbsoluteFill>
       <OffthreadVideo
@@ -18,7 +16,7 @@ export const AvatarSegment: React.FC<Props> = ({ videoSrc, subtitleText }) => {
           objectFit: "cover",
         }}
       />
-      {subtitleText && <SubtitleOverlay text={subtitleText} />}
+      {/* 字幕由 Topview avatar4 --caption 原生烧录，无需 Remotion 渲染 */}
     </AbsoluteFill>
   );
 };

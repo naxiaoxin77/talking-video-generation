@@ -19,6 +19,7 @@ export function loadConfig(): PipelineConfig {
     ttsSpeed: parseFloat(process.env.TTS_SPEED || "1.0"),
     ttsEmotion: process.env.TTS_EMOTION || "",
     dynamicAvatar: process.env.DYNAMIC_AVATAR === "true",
+    captionId: process.env.CAPTION_ID || "",
     outputDir: path.resolve("output"),
     publicDir: path.resolve("public"),
   };

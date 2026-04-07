@@ -12,6 +12,7 @@ export async function generateAvatarVideos(
     publicDir: string;
     ttsSpeed?: number;
     ttsEmotion?: string;
+    captionId?: string;
   }
 ): Promise<EnrichedSegment[]> {
   const avatarsDir = path.join(config.publicDir, "avatars");
@@ -54,7 +55,8 @@ export async function generateAvatarVideos(
     const taskId = await topview.submitAvatar4WithAudio(
       audioPath,
       config.avatarPhotoPath,
-      config.boardId
+      config.boardId,
+      config.captionId
     );
     avatarTaskMap.push({ segment, taskId });
     console.log(`  [${segment.id}] Avatar TaskId: ${taskId}`);

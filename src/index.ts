@@ -80,6 +80,7 @@ async function main() {
     publicDir: config.publicDir,
     ttsSpeed: config.ttsSpeed,
     ttsEmotion: config.ttsEmotion,
+    captionId: config.captionId || undefined,
   });
 
   // Step 2b: Prepare resources (extract audio, get durations)

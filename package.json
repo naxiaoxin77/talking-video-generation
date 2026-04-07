@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "generate": "tsx src/index.ts",
+    "batch": "tsx src/workflow/batch-scan.ts",
     "preview": "remotion preview src/remotion/Root.tsx",
     "render": "remotion render src/remotion/Root.tsx TalkingVideo"
   },

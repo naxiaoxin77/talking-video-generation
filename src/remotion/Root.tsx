@@ -18,11 +18,9 @@ const calculateMetadata: CalculateMetadataFunction<RemotionCompositionProps> = a
     return sum + (seg.avatarDuration || seg.durationHint);
   }, 0);
 
-  const transitionOverlap = Math.max(0, props.segments.length - 1) * 0.5;
-  const effectiveDuration = totalSeconds - transitionOverlap;
-
+  // 硬切模式：无转场重叠
   return {
-    durationInFrames: Math.ceil(effectiveDuration * FPS),
+    durationInFrames: Math.ceil(totalSeconds * FPS),
     fps: FPS,
     width: WIDTH,
     height: HEIGHT,

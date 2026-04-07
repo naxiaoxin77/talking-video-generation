@@ -10,20 +10,24 @@ export const designConfig = {
   // ========== 全局配色 ==========
   theme: {
     /** 幻灯片默认背景（支持渐变） */
-    background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%)",
+    background: "linear-gradient(135deg, #000000 0%, ##575757 50%, #000000 100%)",
     /** 强调色（标题、图标、高亮） */
-    accent: "#6C63FF",
+    accent: "#ff9431",
     /** 正文颜色 */
-    text: "#ffffff",
+    text: "#ffecdb",
   },
 
   // ========== 字幕样式（Avatar 和 B-roll 底部字幕） ==========
   subtitle: {
     fontSize: 36,
     fontWeight: 600,
-    color: "#ffffff",
-    /** 字幕背景 */
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    color: "#1a1a1a",
+    /** 当前句高亮颜色（蓝色，与 Topview caption22 统一） */
+    highlightColor: "#2563EB",
+    /** 非当前句颜色 */
+    dimColor: "rgba(0, 0, 0, 0.45)",
+    /** 字幕背景（白底） */
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 12,
     /** 内边距 */
     padding: "16px 24px",
@@ -32,20 +36,37 @@ export const designConfig = {
     /** 最大宽度（占屏幕比例） */
     maxWidth: "90%",
     lineHeight: 1.5,
-    textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+    textShadow: "none",
+  },
+
+  // ========== 画中画（B-roll 人物小窗） ==========
+  pip: {
+    /** 圆形直径 */
+    size: 300,
+    /** 距右边距 */
+    right: 40,
+    /** 距顶部 */
+    top: 80,
+    /** 边框 */
+    borderWidth: 4,
+    borderColor: "rgba(255,255,255,0.8)",
+    /** 阴影 */
+    boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+    /** 入场动画时长（帧） */
+    enterDuration: 12,
   },
 
   // ========== 幻灯片通用 ==========
   slide: {
     /** 幻灯片内边距 */
-    padding: "80px 60px",
+    padding: "60px 50px",
 
     /** 标题 */
     title: {
-      fontSize: 56,
+      fontSize: 88,
       fontWeight: 800,
       /** 标题与内容的间距 */
-      marginBottom: 60,
+      marginBottom: 50,
       lineHeight: 1.3,
     },
 
@@ -58,13 +79,13 @@ export const designConfig = {
   // ========== bullet-list 要点列表 ==========
   bulletList: {
     /** 条目间距 */
-    itemGap: 36,
+    itemGap: 40,
     /** 图标容器尺寸 */
-    iconSize: 64,
-    iconBorderRadius: 16,
-    iconFontSize: 32,
+    iconSize: 72,
+    iconBorderRadius: 18,
+    iconFontSize: 36,
     /** 文字大小 */
-    textFontSize: 38,
+    textFontSize: 46,
     textFontWeight: 500,
     /** 弹簧动画参数 */
     spring: { damping: 15, stiffness: 120 },
@@ -75,12 +96,12 @@ export const designConfig = {
   // ========== big-number 大数字 ==========
   bigNumber: {
     /** 数字字号 */
-    numberFontSize: 160,
+    numberFontSize: 180,
     numberFontWeight: 900,
     /** 单位字号 */
-    unitFontSize: 80,
+    unitFontSize: 90,
     /** 副标题字号 */
-    subtitleFontSize: 40,
+    subtitleFontSize: 48,
     subtitleMarginTop: 40,
     /** 计数动画占时长比例 */
     countDurationRatio: 0.5,
@@ -97,10 +118,10 @@ export const designConfig = {
     /** 右侧标签颜色 */
     rightColor: "#4ECDC4",
     /** 标签字号 */
-    labelFontSize: 36,
+    labelFontSize: 42,
     labelFontWeight: 700,
     /** 内容字号 */
-    itemFontSize: 32,
+    itemFontSize: 38,
     /** 分隔线宽度 */
     dividerWidth: 3,
     /** 弹簧参数 */
@@ -112,15 +133,15 @@ export const designConfig = {
   // ========== quote 引用 ==========
   quote: {
     /** 装饰引号字号 */
-    quoteMarkFontSize: 300,
+    quoteMarkFontSize: 320,
     /** 装饰引号最终透明度 */
     quoteMarkOpacity: 0.15,
     /** 引文字号 */
-    quoteFontSize: 44,
+    quoteFontSize: 52,
     quoteFontWeight: 500,
     quoteLineHeight: 1.8,
     /** 出处字号 */
-    attributionFontSize: 32,
+    attributionFontSize: 38,
     /** 打字机速度：每字符帧数（越小越快） */
     typewriterSpeed: 1.5,
     /** 打字机占时长比例上限 */
@@ -134,17 +155,17 @@ export const designConfig = {
     /** 时间线左侧缩进 */
     paddingLeft: 50,
     /** 节点圆点尺寸 */
-    dotSize: 28,
+    dotSize: 32,
     dotBorderWidth: 3,
     /** 节点发光效果 */
     dotGlow: true,
     /** 标签字号 */
-    labelFontSize: 38,
+    labelFontSize: 44,
     labelFontWeight: 700,
     /** 描述字号 */
-    descriptionFontSize: 30,
+    descriptionFontSize: 36,
     /** 节点间距 */
-    nodeMarginBottom: 48,
+    nodeMarginBottom: 52,
     /** 弹簧参数 */
     spring: { damping: 14, stiffness: 120 },
     /** 最大交错延迟（帧） */

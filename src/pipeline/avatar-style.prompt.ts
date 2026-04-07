@@ -36,7 +36,7 @@ export const AVATAR_IMAGE_CONFIG = {
   /** 宽高比 — avatar4 建议用接近正方形或竖屏 */
   aspectRatio: "3:4" as const,
   /** 分辨率 */
-  resolution: "1K" as const,
+  resolution: "2K" as const,
   /** 超时（秒） */
   timeout: 600,
 };

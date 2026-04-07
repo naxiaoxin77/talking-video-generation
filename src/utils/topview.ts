@@ -171,15 +171,18 @@ export class TopviewClient {
   async submitAvatar4WithAudio(
     audioPath: string,
     imagePath: string,
-    boardId: string
+    boardId: string,
+    captionId?: string
   ): Promise<string> {
-    const output = await this.exec("avatar4.py", [
+    const args = [
       "submit",
       "--image", imagePath,
       "--audio", audioPath,
       "--board-id", boardId,
       "--json",
-    ]);
+    ];
+    if (captionId) args.push("--caption", captionId);
+    const output = await this.exec("avatar4.py", args);
     try {
       const result = extractJson(output);
       return result.taskId || output.trim();

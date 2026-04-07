@@ -58,6 +58,8 @@ export interface VideoScript {
   title: string;
   totalDurationEstimate: number;
   segments: Segment[];
+  videoTitle?: string;        // 短视频平台标题（≤30字）
+  videoDescription?: string;  // 短视频简介（≤100字）
 }
 
 export interface Segment {
@@ -96,6 +98,7 @@ export interface PipelineConfig {
   ttsSpeed: number;
   ttsEmotion: string;
   dynamicAvatar: boolean;
+  captionId: string;
   outputDir: string;
   publicDir: string;
 }
