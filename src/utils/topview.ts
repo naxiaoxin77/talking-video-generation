@@ -36,7 +36,7 @@ export class TopviewClient {
     const { stdout } = await execFileAsync(
       getPythonCommand(),
       [this.scriptPath(script), ...args],
-      { timeout: 700_000, maxBuffer: 10 * 1024 * 1024 }
+      { timeout: 3_600_000, maxBuffer: 10 * 1024 * 1024 }
     );
     return stdout.trim();
   }

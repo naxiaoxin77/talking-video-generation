@@ -43,11 +43,11 @@ export const designConfig = {
   effects: {
     /** 镜头缓推：整个 slide 从初始比例缓慢放大 */
     cameraPush: {
-      enabled: true,
+      enabled: false,
       /** 起始缩放（1.0 = 原始大小） */
       scaleFrom: 1.0,
       /** 结束缩放 */
-      scaleTo: 1.06,
+      scaleTo: 1.12,
     },
     /** 光效扫过：一道白色光带从左向右划过 */
     lightSweep: {
@@ -59,7 +59,7 @@ export const designConfig = {
       /** 光带宽度（像素） */
       width: 120,
       /** 光带最大不透明度 */
-      opacity: 0.18,
+      opacity: 0.28,
       /** 光带倾斜角度（度） */
       angle: 20,
     },
@@ -89,8 +89,8 @@ export const designConfig = {
 
     /** 标题 */
     title: {
-      fontSize: 88,
-      fontWeight: 800,
+      fontSize: 75,
+      fontWeight: 600,
       /** 标题与内容的间距 */
       marginBottom: 50,
       lineHeight: 1.3,

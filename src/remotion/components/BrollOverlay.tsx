@@ -43,16 +43,16 @@ export const BrollOverlay: React.FC<{
           position: "absolute",
           left: "4%",
           right: "4%",
-          top: "30%",
-          bottom: "18%",
+          top: "8%",
+          bottom: "28%",
           opacity,
           transform: `translateY(${translateY}px)`,
-          background: "rgba(8, 8, 18, 0.84)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          background: "rgba(10, 10, 22, 0.75)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
           borderRadius: 36,
           overflow: "hidden",
-          boxShadow: "0 8px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.07)",
+          boxShadow: "0 8px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.09)",
         }}
       >
         <div style={{ position: "relative", width: "100%", height: "100%" }}>

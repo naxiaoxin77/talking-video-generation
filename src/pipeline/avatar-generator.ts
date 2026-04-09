@@ -56,10 +56,10 @@ export async function generateAvatarVideo(
 
   let videoUrl: string;
   try {
-    ({ videoUrl } = await topview.queryAvatar4(avatarTaskId, 600));
+    ({ videoUrl } = await topview.queryAvatar4(avatarTaskId, 1800));
   } catch {
     console.log("  [Avatar] First poll timed out, retrying with extended timeout...");
-    ({ videoUrl } = await topview.queryAvatar4(avatarTaskId, 1200));
+    ({ videoUrl } = await topview.queryAvatar4(avatarTaskId, 3600));
   }
 
   const absoluteVideoPath = path.join(avatarsDir, "main.mp4");
