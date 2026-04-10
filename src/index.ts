@@ -83,6 +83,7 @@ async function main() {
     topview,
     {
       avatarPhotoPath,
+      defaultAvatarPhotoPath: config.avatarPhotoPath, // fallback to original if styled fails
       voiceId: config.avatarVoiceId,
       boardId,
       publicDir: config.publicDir,

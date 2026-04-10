@@ -17,6 +17,8 @@ export async function generateAvatarVideo(
   topview: TopviewClient,
   config: {
     avatarPhotoPath: string;
+    /** Fallback photo if avatarPhotoPath fails (e.g. AI-generated image rejected by Topview) */
+    defaultAvatarPhotoPath?: string;
     voiceId: string;
     boardId: string;
     publicDir: string;
@@ -45,21 +47,33 @@ export async function generateAvatarVideo(
   console.log(`  [TTS] Audio downloaded: ${absoluteAudioPath}`);
 
   // ── Phase 2: Avatar (audio-driven lip-sync) ────────────────────
-  console.log("  [Avatar] Submitting avatar4 task...");
-  const avatarTaskId = await topview.submitAvatar4WithAudio(
-    absoluteAudioPath,
-    config.avatarPhotoPath,
-    config.boardId,
-    config.captionId
-  );
-  console.log(`  [Avatar] TaskId: ${avatarTaskId}`);
+  const tryAvatar = async (photoPath: string): Promise<string> => {
+    console.log(`  [Avatar] Submitting avatar4 task (photo: ${path.basename(photoPath)})...`);
+    const taskId = await topview.submitAvatar4WithAudio(
+      absoluteAudioPath, photoPath, config.boardId, config.captionId
+    );
+    console.log(`  [Avatar] TaskId: ${taskId}`);
+    try {
+      const { videoUrl } = await topview.queryAvatar4(taskId, 1800);
+      return videoUrl;
+    } catch {
+      console.log("  [Avatar] First poll timed out, retrying with extended timeout...");
+      const { videoUrl } = await topview.queryAvatar4(taskId, 3600);
+      return videoUrl;
+    }
+  };
 
   let videoUrl: string;
   try {
-    ({ videoUrl } = await topview.queryAvatar4(avatarTaskId, 1800));
-  } catch {
-    console.log("  [Avatar] First poll timed out, retrying with extended timeout...");
-    ({ videoUrl } = await topview.queryAvatar4(avatarTaskId, 3600));
+    videoUrl = await tryAvatar(config.avatarPhotoPath);
+  } catch (err: any) {
+    const fallback = config.defaultAvatarPhotoPath;
+    if (fallback && fallback !== config.avatarPhotoPath) {
+      console.warn(`  [Avatar] Failed (${err.message}), falling back to default avatar...`);
+      videoUrl = await tryAvatar(fallback);
+    } else {
+      throw err;
+    }
   }
 
   const absoluteVideoPath = path.join(avatarsDir, "main.mp4");
