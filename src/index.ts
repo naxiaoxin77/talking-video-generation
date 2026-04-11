@@ -108,7 +108,7 @@ async function main() {
 
   // ── Step 4: Overlay plan from SRT ─────────────────────────────
   console.log("\n=== Step 4: Generating overlay plan ===");
-  const overlays = await generateOverlays(srtContent, config.geminiApiKey);
+  const overlays = await generateOverlays(srtContent, config.geminiApiKey, videoDuration);
 
   fs.writeFileSync(
     path.join(config.outputDir, "overlays.json"),

@@ -64,7 +64,7 @@ async function main() {
 
   // Step 3: 叠加计划
   console.log("\n=== Generating overlay plan ===");
-  const overlays = await generateOverlays(srtContent, config.geminiApiKey);
+  const overlays = await generateOverlays(srtContent, config.geminiApiKey, videoDuration);
   console.log(`${overlays.length} overlays planned`);
   fs.writeFileSync(path.join(config.outputDir, "overlays.json"), JSON.stringify(overlays, null, 2), "utf-8");
 

@@ -292,7 +292,7 @@ async function main() {
 
       // 2f: 生成叠加计划
       console.log("  🖼️ 生成 B-roll 叠加计划...");
-      const overlays = await generateOverlays(srtContent, config.geminiApiKey);
+      const overlays = await generateOverlays(srtContent, config.geminiApiKey, videoDuration);
       console.log(`     ${overlays.length} 个叠加点`);
 
       // 2g: Remotion 渲染
