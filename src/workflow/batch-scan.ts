@@ -200,8 +200,10 @@ function writeBackVideoNote(sourceVaultPath: string, noteVaultPath: string): voi
 
 // ====== 清理临时文件 ======
 
-function cleanupTempFiles(publicDir: string): void {
-  const dirsToClean = ["avatars", "tts"].map(d => path.join(publicDir, d));
+function cleanupTempFiles(publicDir: string, runId?: string): void {
+  const dirsToClean = runId
+    ? [path.join(publicDir, "avatars", runId), path.join(publicDir, "tts", runId)]
+    : ["avatars", "tts"].map(d => path.join(publicDir, d));
   const styledAvatar = path.join(publicDir, "avatar-styled.jpg");
   for (const dir of dirsToClean) {
     if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
@@ -303,6 +305,7 @@ async function main() {
           ttsSpeed: config.ttsSpeed,
           ttsEmotion: config.ttsEmotion,
           captionId: config.captionId || undefined,
+          runId: article.slug,
         }
       );
 
@@ -360,7 +363,7 @@ async function main() {
 
       // 2j: 清理
       if (!keepArtifacts) {
-        cleanupTempFiles(config.publicDir);
+        cleanupTempFiles(config.publicDir, article.slug);
       } else {
         console.log("  📦 保留中间文件 (--keep)");
       }
@@ -370,7 +373,7 @@ async function main() {
 
     } catch (err: any) {
       console.error(`  ❌ 失败: ${err.message}`);
-      if (!keepArtifacts) cleanupTempFiles(config.publicDir);
+      if (!keepArtifacts) cleanupTempFiles(config.publicDir, article.slug);
       results.push({ article, success: false, error: err.message });
     }
   }

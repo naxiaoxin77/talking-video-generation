@@ -25,10 +25,14 @@ export async function generateAvatarVideo(
     ttsSpeed?: number;
     ttsEmotion?: string;
     captionId?: string;
+    /** Unique ID for this run to isolate temp files (prevents concurrent-run collisions) */
+    runId?: string;
   }
 ): Promise<AvatarGenerationResult> {
-  const ttsDir = path.join(config.publicDir, "tts");
-  const avatarsDir = path.join(config.publicDir, "avatars");
+  // Use a unique subdir per run to avoid collisions between concurrent processes
+  const runId = config.runId || "default";
+  const ttsDir = path.join(config.publicDir, "tts", runId);
+  const avatarsDir = path.join(config.publicDir, "avatars", runId);
   fs.mkdirSync(ttsDir, { recursive: true });
   fs.mkdirSync(avatarsDir, { recursive: true });
 
