@@ -85,8 +85,8 @@ export async function generateAvatarVideo(
   console.log(`  [Avatar] Video downloaded: ${absoluteVideoPath}`);
 
   return {
-    audioPath: "tts/main.mp3",
-    avatarVideoPath: "avatars/main.mp4",
+    audioPath: `tts/${runId}/main.mp3`,
+    avatarVideoPath: `avatars/${runId}/main.mp4`,
     absoluteAudioPath,
     absoluteVideoPath,
   };
