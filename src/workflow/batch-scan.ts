@@ -23,7 +23,7 @@ import type { CompositionProps } from "../pipeline/types.js";
 
 const VAULT_BASE = "natebrain/03_Content_Factory/01_Final_Assets";
 const SCAN_CATEGORIES = ["深度blog", "短图文"];
-const OUTPUT_BASE = "G:\\Other computers\\My MacBook Pro\\brain\\natebrain\\03_Content_Factory\\01_Final_Assets\\短视频";
+const OUTPUT_BASE = "E:\\natebrain\\03_Content_Factory\\01_Final_Assets\\短视频";
 
 // 文件名匹配模式：[终稿-图文]-*.md
 function buildFilePatternCheck(): string {
