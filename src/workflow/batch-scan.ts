@@ -23,7 +23,7 @@ import type { CompositionProps } from "../pipeline/types.js";
 
 const VAULT_BASE = "natebrain/03_Content_Factory/01_Final_Assets";
 const SCAN_CATEGORIES = ["深度blog", "短图文"];
-const OUTPUT_BASE = "E:\\natebrain\\03_Content_Factory\\01_Final_Assets\\短视频";
+const OUTPUT_BASE = "E:\\natebrain\\natebrain\\03_Content_Factory\\01_Final_Assets\\短视频";
 
 // 文件名匹配模式：[终稿-图文]-*.md
 function buildFilePatternCheck(): string {
@@ -183,7 +183,7 @@ const KANBAN_VAULT_PATH = "natebrain/内容生产流水线.md";
 const KANBAN_COLUMN = "## ⏳ 待发布 (Scheduled)";
 
 function addToKanban(noteVaultPath: string): void {
-  // noteVaultPath: vault 内路径，不含 .md，e.g. "03_Content_Factory/01_Final_Assets/短视频/..."
+  // noteVaultPath: vault 内路径，不含 .md，e.g. "natebrain/03_Content_Factory/01_Final_Assets/短视频/..."
   const colCodes = [...KANBAN_COLUMN].map(c => c.charCodeAt(0)).join(",");
   const colExpr = `[${colCodes}].map(function(c){return String.fromCharCode(c)}).join(String())`;
   const cardLine = `\n- [ ] [[${noteVaultPath}]]`;
@@ -346,7 +346,7 @@ async function main() {
       // 2h: 生成视频笔记
       const noteName = `${today}-${article.slug}`;
       // vault 内路径（不含 .md，用于 wikilink）
-      const noteVaultPath = `03_Content_Factory/01_Final_Assets/短视频/${today}/${today}-${article.slug}/${noteName}`;
+      const noteVaultPath = `natebrain/03_Content_Factory/01_Final_Assets/短视频/${today}/${today}-${article.slug}/${noteName}`;
       console.log("  📋 生成视频笔记...");
       createVideoNote(outputDir, noteName, {
         videoTitle: script.videoTitle || script.title,
