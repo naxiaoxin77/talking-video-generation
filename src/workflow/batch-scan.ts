@@ -142,30 +142,60 @@ function readArticleContent(vaultPath: string): string {
 
 // ====== Metadata 生成 ======
 
-function saveMetadata(
+// ====== 视频笔记生成 ======
+
+function createVideoNote(
   outputDir: string,
-  meta: { videoTitle: string; videoDescription: string; sourceArticle: string; category: string; generatedAt: string; videoFile: string }
+  noteName: string,
+  meta: { videoTitle: string; videoDescription: string; sourceVaultPath: string; category: string; generatedAt: string }
 ): string {
   const content = `---
 title: "${meta.videoTitle}"
 description: "${meta.videoDescription}"
-source: "${meta.sourceArticle}"
+source: "[[${meta.sourceVaultPath}]]"
 category: ${meta.category}
 generated_at: ${meta.generatedAt}
+article_type: short-video
+tiktok:
+instagram:
+youtube_shorts:
+xiaohongshu:
 ---
 
 # ${meta.videoTitle}
 
 ${meta.videoDescription}
 
-- **来源文章**: ${meta.sourceArticle}
+![[video.mp4]]
+
+- **来源文章**: [[${meta.sourceVaultPath}]]
 - **内容分类**: ${meta.category}
-- **视频文件**: ${meta.videoFile}
 - **生成时间**: ${meta.generatedAt}
 `;
-  const metaPath = path.join(outputDir, "metadata.md");
-  fs.writeFileSync(metaPath, content, "utf-8");
-  return metaPath;
+  const notePath = path.join(outputDir, `${noteName}.md`);
+  fs.writeFileSync(notePath, content, "utf-8");
+  return notePath;
+}
+
+// ====== Kanban 集成 ======
+
+const KANBAN_VAULT_PATH = "natebrain/内容生产流水线.md";
+const KANBAN_COLUMN = "## ⏳ 待发布 (Scheduled)";
+
+function addToKanban(noteVaultPath: string): void {
+  // noteVaultPath: vault 内路径，不含 .md，e.g. "03_Content_Factory/01_Final_Assets/短视频/..."
+  const colCodes = [...KANBAN_COLUMN].map(c => c.charCodeAt(0)).join(",");
+  const colExpr = `[${colCodes}].map(function(c){return String.fromCharCode(c)}).join(String())`;
+  const cardLine = `\\n- [ ] [[${noteVaultPath}]]`;
+  const cardLineCodes = [...cardLine].map(c => c.charCodeAt(0)).join(",");
+  const cardExpr = `[${cardLineCodes}].map(function(c){return String.fromCharCode(c)}).join(String())`;
+
+  const code = `var f=app.vault.getAbstractFileByPath(${encStr(KANBAN_VAULT_PATH)}); if(f){ app.vault.process(f, function(content){ var col=${colExpr}; var idx=content.indexOf(col); if(idx===-1) return content; var card=${cardExpr}; return content.slice(0,idx+col.length)+card+content.slice(idx+col.length) }) }`;
+  obsidianEval(code);
+}
+
+function writeBackVideoNote(sourceVaultPath: string, noteVaultPath: string): void {
+  obsidianPropertySet(sourceVaultPath, "video_note", `[[${noteVaultPath}]]`);
 }
 
 // ====== 清理临时文件 ======
@@ -308,20 +338,25 @@ async function main() {
       };
       await renderVideo(compositionProps, outputVideoPath);
 
-      // 2h: 生成 metadata
-      console.log("  📋 生成 metadata...");
-      saveMetadata(outputDir, {
+      // 2h: 生成视频笔记
+      const noteName = `${today}-${article.slug}`;
+      // vault 内路径（不含 .md，用于 wikilink）
+      const noteVaultPath = `03_Content_Factory/01_Final_Assets/短视频/${today}/${today}-${article.slug}/${noteName}`;
+      console.log("  📋 生成视频笔记...");
+      createVideoNote(outputDir, noteName, {
         videoTitle: script.videoTitle || script.title,
         videoDescription: script.videoDescription || `${script.title} - 口播短视频`,
-        sourceArticle: article.vaultPath,
+        sourceVaultPath: article.vaultPath,
         category: article.category,
         generatedAt: new Date().toISOString(),
-        videoFile: "video.mp4",
       });
 
-      // 2i: 更新文章状态
-      console.log("  ✏️ 更新 video_status → done...");
+      // 2i: 添加到 kanban 待发布列 + 回写源文章
+      console.log("  📌 添加到 kanban 待发布列...");
+      addToKanban(noteVaultPath);
+      console.log("  ✏️ 回写源文章 video_status + video_note...");
       obsidianPropertySet(article.vaultPath, "video_status", "done");
+      writeBackVideoNote(article.vaultPath, noteVaultPath);
 
       // 2j: 清理
       if (!keepArtifacts) {
