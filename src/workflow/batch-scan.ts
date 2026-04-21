@@ -186,7 +186,7 @@ function addToKanban(noteVaultPath: string): void {
   // noteVaultPath: vault 内路径，不含 .md，e.g. "03_Content_Factory/01_Final_Assets/短视频/..."
   const colCodes = [...KANBAN_COLUMN].map(c => c.charCodeAt(0)).join(",");
   const colExpr = `[${colCodes}].map(function(c){return String.fromCharCode(c)}).join(String())`;
-  const cardLine = `\\n- [ ] [[${noteVaultPath}]]`;
+  const cardLine = `\n- [ ] [[${noteVaultPath}]]`;
   const cardLineCodes = [...cardLine].map(c => c.charCodeAt(0)).join(",");
   const cardExpr = `[${cardLineCodes}].map(function(c){return String.fromCharCode(c)}).join(String())`;
 
@@ -204,7 +204,9 @@ function cleanupTempFiles(publicDir: string, runId?: string): void {
   const dirsToClean = runId
     ? [path.join(publicDir, "avatars", runId), path.join(publicDir, "tts", runId)]
     : ["avatars", "tts"].map(d => path.join(publicDir, d));
-  const styledAvatar = path.join(publicDir, "avatar-styled.jpg");
+  const styledAvatar = runId
+    ? path.join(publicDir, `avatar-styled-${runId}.jpg`)
+    : path.join(publicDir, "avatar-styled.jpg");
   for (const dir of dirsToClean) {
     if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -282,7 +284,7 @@ async function main() {
           avatarPhotoPath = await generateDynamicAvatar(
             articleText,
             config.avatarPhotoPath,
-            { geminiApiKey: config.geminiApiKey, boardId, publicDir: config.publicDir },
+            { geminiApiKey: config.geminiApiKey, boardId, publicDir: config.publicDir, runId: article.slug },
             topview
           );
         } catch (err) {

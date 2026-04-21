@@ -18,6 +18,8 @@ export async function generateDynamicAvatar(
     geminiApiKey: string;
     boardId: string;
     publicDir: string;
+    /** Unique ID to avoid concurrent-run filename collisions */
+    runId?: string;
   },
   topview: TopviewClient
 ): Promise<string> {
@@ -51,7 +53,8 @@ export async function generateDynamicAvatar(
   );
 
   // Step 3: Download to public dir
-  const outputPath = path.join(config.publicDir, "avatar-styled.jpg");
+  const filename = config.runId ? `avatar-styled-${config.runId}.jpg` : "avatar-styled.jpg";
+  const outputPath = path.join(config.publicDir, filename);
   await downloadFile(imageUrl, outputPath);
   console.log(`  New avatar saved to: ${outputPath}`);
 
