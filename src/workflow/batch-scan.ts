@@ -391,7 +391,11 @@ async function main() {
   for (const r of succeeded) console.log(`  ✅ ${r.article.title || r.article.slug} → ${r.videoPath}`);
   for (const r of failed) console.log(`  ❌ ${r.article.title || r.article.slug}: ${r.error}`);
 
-  if (failed.length > 0) process.exit(1);
+  // process.exit() 是必须的：Remotion 的 Rust native compositor
+  // (@remotion/compositor-win32-x64-msvc) 在自然退出时 GC 析构会触发
+  // Windows STATUS_STACK_BUFFER_OVERRUN (0xC0000409)。
+  // process.exit() 强制退出并刷新 stdout，跳过原生析构阶段。
+  process.exit(failed.length > 0 ? 1 : 0);
 }
 
 main().catch((err) => {
