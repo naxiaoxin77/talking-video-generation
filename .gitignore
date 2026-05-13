@@ -1,10 +1,35 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+
+# Environment variables
 .env
-public/avatars/
-public/broll/
-public/audio/
+.env.local
+
+# Generated temp files (pipeline artifacts)
 public/tts/
-public/avatar-styled.jpg
+public/avatars/
+public/avatar-styled-*.jpg
+
+# Keep original avatar assets
+!public/avatar.jpg
+!public/avatar-styled.jpg
+
+# Test/dev output artifacts
 output/
+
+# Claude Code project settings
 .claude/
+
+# Remotion temp bundles
+remotion-webpack-bundle-*/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
