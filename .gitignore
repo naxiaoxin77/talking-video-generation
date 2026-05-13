@@ -11,11 +11,10 @@ dist/
 # Generated temp files (pipeline artifacts)
 public/tts/
 public/avatars/
-public/avatar-styled-*.jpg
+public/avatar-styled*.jpg
 
-# Keep original avatar assets
+# Keep original avatar photo
 !public/avatar.jpg
-!public/avatar-styled.jpg
 
 # Test/dev output artifacts
 output/
